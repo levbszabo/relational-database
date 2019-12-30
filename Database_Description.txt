@@ -1,0 +1,123 @@
+Databases Final Project Levente Szabo: ls5122@nyu.edu
+
+Unfortunately I ran out of time and was not able to create as detailed of
+a readme as I wouldve like to. Please send me an email about any questions you
+may have.
+
+To run reprozip:
+	reprounzip directory setup DBProject.rpz ./project
+	reprounzip directory run ./project
+
+	Please re-reprozip my project if it is not working as it should, I had some issues
+	with dependencies. While the reprozip file given should work I have updated my python
+	file slightly (found a few bugs) and this could potentially speed up the select statment
+
+main.py can be run with input files or through stdin
+a): python main.py inputFile.txt
+b): python main.py  (then give input with empty line causing exit)
+Timing results are available in stdout and output files are saved 
+into current directory (ls5122_AllOperations, etc.)
+
+We give a description of all components in main.py
+
+all packages used:
+sys: for IO
+re : for parsing input stream 
+numpy : for maintaing structured arrays and aggregation
+import time : for timing
+operator.itemgetter: for sorting 
+BTrees.OOBTree: for index maintainence 
+
+all global variables used:
+tables: a dictionary mapping strings to Table objects (used to maintain all new tables)
+file_oper: file of "AllOperations" constantly written to
+
+class Table:
+	maintains all information about a table
+	variables: name(str), header(list[str]), table(list[list[]]),
+	index(dict{int: list[int]}), index_att(str)
+	The index and index_att are a dictionary and corresponding 
+	attribute name which give us the indices for a given value of index_att
+
+method Input:
+	input: str filename, list[str] line
+	ouput: void
+	Reads a ("|") seperated text file and saves into tables
+
+method split_str:
+	input: str string, list[str] delimit
+	output: delimit, list[str]
+	Determins the delimit for a given string, useful in cleaning code which
+	splits on multiple arithmetic or relation operations
+
+method std_select:
+	input: str table, list[str] conditions
+	output: list[list[str]] std_conditions
+	Given the multiple ways in which a select statement can be given 
+	std_select attempts to standardize the statements into an equivalent 
+	form, namely [att,aritOP,constant2,relationOP,constant1]
+	so ideally each condition is in the form 
+	time - 2 >= 5
+	When the statement is reversed we map the relation operation to its
+	opposite, so that 2 <= time - 5  ->  time-5 >= 2
+
+method std_join:
+	input: list[str] conditions
+	output: list[list[str]] std_conditions
+	The structure is simpler than std_select since the form is generally
+	the same, we put into std form as 
+	[t1,t1_att, arit1, c1, rel, t2,t2_att, arit2, c2] 
+	Ex.
+	[R, qty, +, 2, >=, S, time,* ,3]
+
+method select_helper:
+	input: list[str] condition
+	output boolean
+	During select we replace the attribute with a value, so our input
+	 condition will be something like
+	[3,-,2,>=,5] 
+	The select helper goes through all components and including relation
+	and arithmetic ops to resolve and determine if cond is true
+
+method select:
+	input: str table_name, list[list[str]] std_condtion, str conjunction,
+	str new_table_name
+	output:void
+	Creates a new_table Table and adds into tables dict. 
+	Then determines if there is an index on orig. table and whether or not
+	the index is on an attribute that is contained in the conditions list
+	If we do have an index and relation is "=" then use index
+
+	If no index exists then simply loop through each row and determine if
+	it passes all conditions
+
+method structured_array:
+	input: str table_name
+	output: np.array with structured tuples as rows
+	Used for finding the columns of a table, np structured arrays can handle
+	2D datasets with differing data types, first we determine the dtype of each
+	column and then construct an np structured array.This can be returned and 
+	sliced "vertically" down the column to provide better structure than list 
+	of lists
+
+method project:
+	input: str table_name, list[str] att_list, str new_table_name
+	output: void
+	creates a np structured array from orig table and slices by the given
+	attributes
+	
+method avg:
+	input: str table_name, list[str] att_list, str new_table_name
+	output: void
+	creates a np structured array and calculates the mean of the slice
+	by attribute list (single attribute)
+
+All groupby use the same structure of essentially constructing a multi index dictionary
+Suppose we wish to sumgroup(att1, att2, att3) 
+then we construct dict{att2: list[int]} and for each att2 value we find all its
+corresponding att3 values and then make new_dict{(att2,att3): list[int]} 
+This is done until all attributes are members of the key in our final dictionary
+In this case we can apply our aggregates to att1 (count, sum , etc.) 
+A seperate groupby method is included
+
+

@@ -4,7 +4,7 @@ Most of the major database functions are implemented including Select, Join and 
 of Python are used (no MySQL or Pandas). All dataframes are stored as a Table class which is a list of lists with additional meta
 data (indexes, headers, etc). Indexing is supported but only on 1 numeric feature. The indexes are stored as Hash sets (dictionary) or a BTree. The sales1 and sales2 files are initial tables which can be read from IO or as fileinput and serve as the basis for initial queries. Every query is given a name and inserted into a dictionary. All queries are written to AllOperations.txt file, and the outputtofile function can be used to write to file a specific query. Every query is timed and the elapsed time is written to IO.
 
-## Prerequisites
+## Setup
 Python 3.5 is used with the following packages
 sys, re, numpy, time, operator.itemgetter, BTrees.OOBTree
 
